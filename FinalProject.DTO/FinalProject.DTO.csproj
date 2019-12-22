@@ -43,8 +43,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Folder.cs" />
-    <Compile Include="FolderPropertiesDTO.cs" />
-    <Compile Include="InputFileDTO.cs" />
     <Compile Include="Link.cs" />
     <Compile Include="Node.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

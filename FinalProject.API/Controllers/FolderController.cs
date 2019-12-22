@@ -32,7 +32,7 @@ namespace FinalProject.API.Controllers
 
         [HttpGet]
         [Route("api/nodes")]
-        public async Task<List<Node>> GetNodes()
+        public IEnumerable<Node> GetNodes()
         {
             var nodes = _nodeService.GetNodes();
             return nodes;

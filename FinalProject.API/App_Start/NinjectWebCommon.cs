@@ -68,7 +68,6 @@ namespace FinalProject.API.App_Start
         private static void RegisterServices(IKernel kernel)
         {
             kernel.Bind<ISqlProgress>().To<SqlProgress>();
-
             kernel.Bind<IFolderService>().To<FolderService>();
             kernel.Bind<INodeService>().To<NodeService>();
 
