@@ -1,4 +1,5 @@
-﻿using FinalProject.DAL;
+﻿using FinalProject.BLL.IServices;
+using FinalProject.DAL;
 using FinalProject.DAL.Repositories;
 using FinalProject.DTO;
 using System;
@@ -7,21 +8,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FinalProject.BLL
+namespace FinalProject.BLL.Services
 {
-    public class NodeService
+    public class NodeService:INodeService
     {
-        FolderService folderService;
+        IFolderService _folderService;
 
-        public NodeService()
+        public NodeService(IFolderService folderService)
         {
-            folderService = new FolderService();
+            _folderService = folderService;
         }
-
 
         public List<Node> GetNodes()
         {
-            var Folders = folderService.GetFolders();
+            var Folders = _folderService.GetFolders();
 
             var count = 0;
             var allNodes = new List<Node>();
@@ -71,15 +71,13 @@ namespace FinalProject.BLL
             return result;
         }
 
-       
-
-        public static List<Node> AddFirstNodes(string[] pathArray, List<Node> allNodes, int count, Folder folder)
+        public  List<Node> AddFirstNodes(string[] pathArray, List<Node> allNodes, int count, Folder folder)
         {
             AddNodeIfNotExist(allNodes, pathArray, count, folder);
             return allNodes;
         }
 
-        public static Node AddChildNodes(string[] pathArray, Node currentNode, int count, Folder folder)
+        public  Node AddChildNodes(string[] pathArray, Node currentNode, int count, Folder folder)
         {
             var arrayLength = pathArray.Length;
             if (count >= arrayLength)
@@ -90,7 +88,7 @@ namespace FinalProject.BLL
             return currentNode;
         }
 
-        private static void AddNodeIfNotExist(List<Node> Nodes, string[] pathArray, int count, Folder folder)
+        public  void AddNodeIfNotExist(List<Node> Nodes, string[] pathArray, int count, Folder folder)
         {
 
             var arrayLength = pathArray.Length;
@@ -128,7 +126,7 @@ namespace FinalProject.BLL
             }
         }
 
-        public static Node ChooseCurrentNode(string[] pathArray, List<Node> allNodes, int count)
+        public  Node ChooseCurrentNode(string[] pathArray, List<Node> allNodes, int count)
         {
             Node currentNode = null;
             var arrayLength = pathArray.Length;
@@ -167,7 +165,7 @@ namespace FinalProject.BLL
             return currentNode;
         }
 
-        private static void AddLinks(List<Node> Nodes, string[] pathArray, int arrayLength, Folder folder,int count)
+        public  void AddLinks(List<Node> Nodes, string[] pathArray, int arrayLength, Folder folder,int count)
         {
             foreach (var node in Nodes)
             {

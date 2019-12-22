@@ -1,4 +1,5 @@
-﻿using FinalProject.BLL;
+﻿using FinalProject.BLL.IServices;
+using FinalProject.BLL.Services;
 using FinalProject.DTO;
 using System;
 using System.Collections.Generic;
@@ -20,20 +21,20 @@ namespace FinalProject.API.Controllers
     [EnableCors(origins: "*", headers: "*", methods: "*")]
     public class FolderController : ApiController
     {
-        NodeService nodeService;
-        FolderService folderService;
+        INodeService _nodeService;
+        IFolderService _folderService;
 
-        public FolderController()
+        public FolderController(INodeService nodeService,IFolderService folderService)
         {
-            nodeService = new NodeService();
-            folderService = new FolderService();
+            _nodeService = nodeService;
+            _folderService = folderService;
         }
 
         [HttpGet]
         [Route("api/nodes")]
         public async Task<List<Node>> GetNodes()
         {
-            var nodes = nodeService.GetNodes();
+            var nodes = _nodeService.GetNodes();
             return nodes;
         }
 
@@ -42,7 +43,7 @@ namespace FinalProject.API.Controllers
         [Route("api/folders")]
         public IEnumerable<Folder> GetFolders()
         {
-            var folders = folderService.GetFolders();
+            var folders = _folderService.GetFolders();
             return folders;
         }
 
@@ -57,7 +58,7 @@ namespace FinalProject.API.Controllers
                 var result = new HttpResponseMessage(HttpStatusCode.OK);
 
                 #region GetFolder
-                var folder = folderService.GetFolder(id);
+                var folder = _folderService.GetFolder(id);
                 #endregion
 
                 var fileMemStream = new MemoryStream(folder.folder);
@@ -116,7 +117,7 @@ namespace FinalProject.API.Controllers
                                 var folder = new Folder() { fileName = fileName, path = path, folder = bytes, contentType = contentType };
 
 
-                                result = folderService.SaveFolder(folder);
+                                result = _folderService.SaveFolder(folder);
                             }
                         }
                     }
@@ -147,7 +148,7 @@ namespace FinalProject.API.Controllers
         [Route("api/folder/{id}")]
         public IHttpActionResult DeleteFile(int id)
         {
-            var result = folderService.DeleteFolder(id);
+            var result = _folderService.DeleteFolder(id);
             if (result>0)
             {
                 return Ok();

@@ -1,4 +1,6 @@
 ﻿using Dapper;
+using FinalProject.BLL.IServices;
+using FinalProject.DAL.DBConnection;
 using FinalProject.DAL.Repositories;
 using FinalProject.DTO;
 using System;
@@ -8,15 +10,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FinalProject.BLL
+namespace FinalProject.BLL.Services
 {
-    public class FolderService
+    public class FolderService:IFolderService
     {
         FolderRepository folderRepository;
+        ISqlProgress _sqlProgress;
 
-        public FolderService()
+        public FolderService(ISqlProgress sqlProgress)
         {
-            folderRepository = new FolderRepository();
+            _sqlProgress = sqlProgress;
+            folderRepository = new FolderRepository(_sqlProgress);
         }
 
         public int SaveFolder(Folder folder)

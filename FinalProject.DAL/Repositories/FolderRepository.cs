@@ -1,4 +1,6 @@
 ﻿using Dapper;
+using FinalProject.DAL.DBConnection;
+using FinalProject.DAL.IRepositories;
 using FinalProject.DTO;
 using System;
 using System.Collections.Generic;
@@ -11,23 +13,16 @@ using System.Threading.Tasks;
 
 namespace FinalProject.DAL.Repositories
 {
-    public class FolderRepository
+    public class FolderRepository:IFolderRepository
     {
         SqliteDataAccess<Folder> sqlFolders;
-        public string connString = "";
+        ISqlProgress _sqlProgress;
 
-        public FolderRepository()
+        public FolderRepository(ISqlProgress sqlProgress)
         {
-            sqlFolders = new SqliteDataAccess<Folder>();
-            connString = LoadConnectionString();
+            _sqlProgress = sqlProgress;
+            sqlFolders = new SqliteDataAccess<Folder>(_sqlProgress);
         }
-
-        private string LoadConnectionString(string id = "Default")
-        {
-            var conn = ConfigurationManager.ConnectionStrings[id].ConnectionString;
-            return conn;
-        }
-
         public List<Folder> GetFolders()
         {
             var folders = sqlFolders.ExecuteRead("select * from folders",null);

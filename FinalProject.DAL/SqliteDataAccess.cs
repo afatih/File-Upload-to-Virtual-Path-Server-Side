@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using FinalProject.DAL.DBConnection;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -14,9 +15,9 @@ namespace FinalProject.DAL
     {
         public  string connString = "";
 
-        public SqliteDataAccess()
+        public SqliteDataAccess(ISqlProgress sqlProgress)
         {
-            connString = LoadConnectionString();
+            connString = sqlProgress.LoadConnectionString();
         }
 
         #region İlk yazılan dapper kodları
@@ -40,14 +41,7 @@ namespace FinalProject.DAL
 
         #endregion
 
-        private  string LoadConnectionString(string id = "Default")
-        {
-            var conn = ConfigurationManager.ConnectionStrings[id].ConnectionString;
-            return conn;
-        }
 
-
-       
         //This method gets all record from student table    
         public  List<TEntity> ExecuteRead(string query, DynamicParameters param)
         {
