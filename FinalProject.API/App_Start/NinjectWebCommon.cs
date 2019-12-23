@@ -70,6 +70,7 @@ namespace FinalProject.API.App_Start
             kernel.Bind<ISqlProgress>().To<SqlProgress>();
             kernel.Bind<IFolderService>().To<FolderService>();
             kernel.Bind<INodeService>().To<NodeService>();
+            kernel.Bind<IFolderRepository>().To<FolderRepository>();
 
         }        
     }
