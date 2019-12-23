@@ -18,6 +18,8 @@ namespace FinalProject.DAL.DBConnection
         public string LoadConnectionString()
         {
             var conn = ConfigurationManager.ConnectionStrings["Default"].ConnectionString;
+            var path = AppDomain.CurrentDomain.GetData("DataDirectory");
+            conn = conn.Replace("~", path.ToString());
             return conn;
         }
 
