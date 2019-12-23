@@ -54,19 +54,19 @@ namespace FinalProject.API.Controllers
         {
             try
             {
-                //https://www.youtube.com/watch?v=zxPVmGpX07I sitesindeki gibi validasyonlar ekle
                 var result = new HttpResponseMessage(HttpStatusCode.OK);
 
-                #region GetFolder
+
                 var folder = _folderService.GetFolder(id);
-                #endregion
+                if (folder==null)
+                {
+                    return new HttpResponseMessage(HttpStatusCode.NotFound);
+                }
 
                 var fileMemStream = new MemoryStream(folder.folder);
-
                 result.Content = new StreamContent(fileMemStream);
 
                 var headers = result.Content.Headers;
-
                 headers.ContentDisposition = new ContentDispositionHeaderValue("attachment");
                 headers.ContentDisposition.FileName = folder.fileName;
                 headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
@@ -75,7 +75,6 @@ namespace FinalProject.API.Controllers
             }
             catch (Exception e)
             {
-
                 return new HttpResponseMessage(HttpStatusCode.InternalServerError);
             }
 
@@ -112,6 +111,10 @@ namespace FinalProject.API.Controllers
                                 Request.Headers.TryGetValues("path", out customJsonInputString);
                                 var customJsonInputArray = customJsonInputString.ToArray();
                                 path = customJsonInputArray[0];
+                                if (string.IsNullOrEmpty(path))
+                                {
+                                    return BadRequest();
+                                }
                                 #endregion
 
                                 var folder = new Folder() { fileName = fileName, path = path, folder = bytes, contentType = contentType };

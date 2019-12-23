@@ -21,7 +21,6 @@ namespace FinalProject.DAL
         }
 
 
-        //This method gets all record from student table    
         public  List<TEntity> ExecuteRead(string query, DynamicParameters param)
         {
             List<TEntity> models = new List<TEntity>();
@@ -34,7 +33,7 @@ namespace FinalProject.DAL
             return models;
         }
 
-        //This method inserts a student record in database    
+   
         public  int ExecuteWrite(string query,TEntity student)
         {
             using (IDbConnection connection = new SQLiteConnection(connString))
