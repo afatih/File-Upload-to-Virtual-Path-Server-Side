@@ -1,4 +1,5 @@
-﻿using FinalProject.BLL;
+﻿using FinalProject.BLL.IServices;
+using FinalProject.BLL.Services;
 using FinalProject.DTO;
 using System;
 using System.Collections.Generic;
@@ -20,20 +21,20 @@ namespace FinalProject.API.Controllers
     [EnableCors(origins: "*", headers: "*", methods: "*")]
     public class FolderController : ApiController
     {
-        NodeService nodeService;
-        FolderService folderService;
+        INodeService _nodeService;
+        IFolderService _folderService;
 
-        public FolderController()
+        public FolderController(INodeService nodeService,IFolderService folderService)
         {
-            nodeService = new NodeService();
-            folderService = new FolderService();
+            _nodeService = nodeService;
+            _folderService = folderService;
         }
 
         [HttpGet]
         [Route("api/nodes")]
-        public async Task<List<Node>> GetNodes()
+        public IEnumerable<Node> GetNodes()
         {
-            var nodes = nodeService.GetNodes();
+            var nodes = _nodeService.GetNodes();
             return nodes;
         }
 
@@ -42,7 +43,7 @@ namespace FinalProject.API.Controllers
         [Route("api/folders")]
         public IEnumerable<Folder> GetFolders()
         {
-            var folders = folderService.GetFolders();
+            var folders = _folderService.GetFolders();
             return folders;
         }
 
@@ -53,19 +54,19 @@ namespace FinalProject.API.Controllers
         {
             try
             {
-                //https://www.youtube.com/watch?v=zxPVmGpX07I sitesindeki gibi validasyonlar ekle
                 var result = new HttpResponseMessage(HttpStatusCode.OK);
 
-                #region GetFolder
-                var folder = folderService.GetFolder(id);
-                #endregion
+
+                var folder = _folderService.GetFolder(id);
+                if (folder==null)
+                {
+                    return new HttpResponseMessage(HttpStatusCode.NotFound);
+                }
 
                 var fileMemStream = new MemoryStream(folder.folder);
-
                 result.Content = new StreamContent(fileMemStream);
 
                 var headers = result.Content.Headers;
-
                 headers.ContentDisposition = new ContentDispositionHeaderValue("attachment");
                 headers.ContentDisposition.FileName = folder.fileName;
                 headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
@@ -74,7 +75,6 @@ namespace FinalProject.API.Controllers
             }
             catch (Exception e)
             {
-
                 return new HttpResponseMessage(HttpStatusCode.InternalServerError);
             }
 
@@ -111,12 +111,16 @@ namespace FinalProject.API.Controllers
                                 Request.Headers.TryGetValues("path", out customJsonInputString);
                                 var customJsonInputArray = customJsonInputString.ToArray();
                                 path = customJsonInputArray[0];
+                                if (string.IsNullOrEmpty(path))
+                                {
+                                    return BadRequest();
+                                }
                                 #endregion
 
                                 var folder = new Folder() { fileName = fileName, path = path, folder = bytes, contentType = contentType };
 
 
-                                result = folderService.SaveFolder(folder);
+                                result = _folderService.SaveFolder(folder);
                             }
                         }
                     }
@@ -147,7 +151,7 @@ namespace FinalProject.API.Controllers
         [Route("api/folder/{id}")]
         public IHttpActionResult DeleteFile(int id)
         {
-            var result = folderService.DeleteFolder(id);
+            var result = _folderService.DeleteFolder(id);
             if (result>0)
             {
                 return Ok();

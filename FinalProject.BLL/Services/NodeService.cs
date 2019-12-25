@@ -1,4 +1,5 @@
-﻿using FinalProject.DAL;
+﻿using FinalProject.BLL.IServices;
+using FinalProject.DAL;
 using FinalProject.DAL.Repositories;
 using FinalProject.DTO;
 using System;
@@ -7,28 +8,27 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FinalProject.BLL
+namespace FinalProject.BLL.Services
 {
-    public class NodeService
+    public class NodeService : INodeService
     {
-        FolderService folderService;
+        IFolderService _folderService;
 
-        public NodeService()
+        public NodeService(IFolderService folderService)
         {
-            folderService = new FolderService();
+            _folderService = folderService;
         }
-
 
         public List<Node> GetNodes()
         {
-            var Folders = folderService.GetFolders();
+            var Folders = _folderService.GetFolders();
 
             var count = 0;
             var allNodes = new List<Node>();
 
 
             var layerCount = -9999999;
-            //Max katman sayısını belirlemek için tüm klasörleri split ile parçalayıp en fazla katmana sahip klasörün katman sayısını buluyoruz.Ona göre döngümüz dönüyor.
+            //Max katman sayısını belirlemek için tüm klasörleri split ile parçalayıp en fazla katmana sahip klasörün katman sayısını buluyoruz. Bu max katman sayısı kadar dosyaların içinde geziyoruz.
             foreach (var folder in Folders)
             {
                 var pathArray = folder.path.Split('/');
@@ -39,7 +39,7 @@ namespace FinalProject.BLL
                 }
             }
 
-            //katman sayısını en uzun dosya yolu içerek klasörün split edildiği zaman ki gelen ifadenin 2 eksiği olarak belirledik.
+            //katman sayısını en uzun dosya yolu içeren klasörün split edildiği zaman ki gelen ifadenin 2 eksiği olarak belirledik.
             layerCount = layerCount - 2;
 
 
@@ -71,15 +71,13 @@ namespace FinalProject.BLL
             return result;
         }
 
-       
-
-        public static List<Node> AddFirstNodes(string[] pathArray, List<Node> allNodes, int count, Folder folder)
+        public List<Node> AddFirstNodes(string[] pathArray, List<Node> allNodes, int count, Folder folder)
         {
             AddNodeIfNotExist(allNodes, pathArray, count, folder);
-            return allNodes;
+            return allNodes.OrderBy(x => x.text).ToList();
         }
 
-        public static Node AddChildNodes(string[] pathArray, Node currentNode, int count, Folder folder)
+        public Node AddChildNodes(string[] pathArray, Node currentNode, int count, Folder folder)
         {
             var arrayLength = pathArray.Length;
             if (count >= arrayLength)
@@ -87,15 +85,16 @@ namespace FinalProject.BLL
                 return currentNode;
             }
             AddNodeIfNotExist(currentNode.nodes, pathArray, count, folder);
+            currentNode.nodes=currentNode.nodes.OrderBy(x => x.text).ToList();
             return currentNode;
         }
 
-        private static void AddNodeIfNotExist(List<Node> Nodes, string[] pathArray, int count, Folder folder)
+        public void AddNodeIfNotExist(List<Node> Nodes, string[] pathArray, int count, Folder folder)
         {
 
             var arrayLength = pathArray.Length;
 
-            //Eğer allNodes'ların Count'u 0 sa ilk gelen path array parametresine göre bir node oluştur.
+            //Eğer allNodes'ların Count'u 0 sa ilk gelen path array parametresine göre bir node oluşturur.
             if (Nodes.Count == 0 && pathArray[count] != "")
             {
                 Nodes.Add(new Node()
@@ -103,7 +102,12 @@ namespace FinalProject.BLL
                     text = pathArray[count],
                 });
 
-                AddLinks(Nodes, pathArray, arrayLength, folder, count);
+                //Eğer katman sayısı dosya yolu split edildikten sonra elde edilen arrayin eleman sayısının 2 eksiğiyse yani dosyanın yükleneceği en son klasöre kadar döngü döndü ise o katmana gerekli dosyayı yüklüyoruz.
+                if (arrayLength - 2 == count)
+                {
+                    AddLinks(Nodes, pathArray, arrayLength, folder, count);
+                }
+
             }
             //Eğer daha önce oluşturulmuş bir node varsa bu allNodes lardaki node ları gez ve o isimde başka bir node varmı diye kontrol et eğer yoksa ekle.
             else
@@ -124,11 +128,16 @@ namespace FinalProject.BLL
                     });
                 }
 
-                AddLinks(Nodes, pathArray, arrayLength, folder, count);
+                if (arrayLength - 2 == count)
+                {
+                    AddLinks(Nodes, pathArray, arrayLength, folder, count);
+                }
+
+
             }
         }
 
-        public static Node ChooseCurrentNode(string[] pathArray, List<Node> allNodes, int count)
+        public Node ChooseCurrentNode(string[] pathArray, List<Node> allNodes, int count)
         {
             Node currentNode = null;
             var arrayLength = pathArray.Length;
@@ -167,13 +176,23 @@ namespace FinalProject.BLL
             return currentNode;
         }
 
-        private static void AddLinks(List<Node> Nodes, string[] pathArray, int arrayLength, Folder folder,int count)
+        public void AddLinks(List<Node> Nodes, string[] pathArray, int arrayLength, Folder folder, int count)
         {
             foreach (var node in Nodes)
             {
-                if (node.text == pathArray[arrayLength - 2] && (arrayLength - 2) == count)
+                //Mevcut node un text i ile girilen dosya yolundaki son dosya klasörü eşleşiyorsa o nodun nodalarına uygun formatta linki ekliyoruz.
+                if (node.text == pathArray[arrayLength - 2])
                 {
-                    node.nodes.Add(new Node() {  link = new Link() { value= "http://localhost:2525/api/folder/"+folder.id.ToString(), type=folder.id } , text= folder.fileName });
+                    node.nodes.Add(new Node()
+                    {
+                        link = new Link()
+                        {
+                            value = "http://localhost:2525/api/folder/" + folder.id.ToString(),
+                            type = folder.id
+                        },
+                        text = folder.fileName
+                    });
+                    node.nodes= node.nodes.OrderBy(x => x.text).ToList();
                 }
             }
         }

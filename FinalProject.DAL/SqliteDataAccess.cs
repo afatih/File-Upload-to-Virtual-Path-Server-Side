@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using FinalProject.DAL.DBConnection;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -14,54 +15,25 @@ namespace FinalProject.DAL
     {
         public  string connString = "";
 
-        public SqliteDataAccess()
+        public SqliteDataAccess(ISqlProgress sqlProgress)
         {
-            connString = LoadConnectionString();
-        }
-
-        #region İlk yazılan dapper kodları
-        public  List<TEntity> LoadPerson()
-        {
-            using (IDbConnection cnn = new SQLiteConnection(connString))
-            {
-                var output = cnn.Query<TEntity>("select * from Person", new DynamicParameters());
-                return output.ToList();
-            }
+            connString = sqlProgress.LoadConnectionString();
         }
 
 
-        public  void SavePerson(TEntity person)
-        {
-            using (IDbConnection cnn = new SQLiteConnection(connString))
-            {
-                cnn.Execute("insert into Person (FirstName,LastName) values (@FirstName,@LastName)", person);
-            }
-        }
-
-        #endregion
-
-        private  string LoadConnectionString(string id = "Default")
-        {
-            var conn = ConfigurationManager.ConnectionStrings[id].ConnectionString;
-            return conn;
-        }
-
-
-       
-        //This method gets all record from student table    
         public  List<TEntity> ExecuteRead(string query, DynamicParameters param)
         {
-            List<TEntity> students = new List<TEntity>();
+            List<TEntity> models = new List<TEntity>();
             using (IDbConnection connection = new SQLiteConnection(connString))
             {
                 connection.Open();
-                students = connection.Query<TEntity>(query, param).ToList();
+                models = connection.Query<TEntity>(query, param).ToList();
                 connection.Close();
             }
-            return students;
+            return models;
         }
 
-        //This method inserts a student record in database    
+   
         public  int ExecuteWrite(string query,TEntity student)
         {
             using (IDbConnection connection = new SQLiteConnection(connString))
